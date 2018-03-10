@@ -66,9 +66,9 @@ void inputActivity(double* temps, double* rains) {
     */
     
     // Introductions
-    setTextColor(FOREGROUND_RED|FOREGROUND_BLUE|FOREGROUND_INTENSITY);
+    setTerminalColor(FOREGROUND_RED|FOREGROUND_BLUE|FOREGROUND_INTENSITY);
     printf(INTRODUCTION);
-    resetTextColor();
+    resetTerminalColor();
     
     // input(both temperature and rainfall)
     bool isRain = false;
@@ -95,9 +95,9 @@ void inputActivity(double* temps, double* rains) {
             }
             scanf("%*s"); // clear input buffer
             
-            setTextColor(FOREGROUND_RED|FOREGROUND_INTENSITY); // red
+            setTerminalColor(FOREGROUND_RED|FOREGROUND_INTENSITY); // red
             printf(ERROR_NAN);
-            resetTextColor();
+            resetTerminalColor();
             
 #ifdef JP
             printf("%dåéÇÃ%s : ", i+1, (isRain) ? "ç~êÖó " : "ãCâ∑");
@@ -110,7 +110,7 @@ void inputActivity(double* temps, double* rains) {
         // too hot/cold much/negative rainfall
         if ((isRain && (rains[i] < 0  || rains[i] > 10000)) ||
             (!isRain && (temps[i] > 100 || temps[i] < -100))) {
-            setTextColor(FOREGROUND_INTENSITY|FOREGROUND_GREEN);
+            setTerminalColor(FOREGROUND_INTENSITY|FOREGROUND_GREEN);
             
             char res;
             while(getchar() != '\n'); // clear stdin
@@ -130,7 +130,7 @@ void inputActivity(double* temps, double* rains) {
                 printf(CONTINUE_MSG);
             }
             
-            resetTextColor();
+            resetTerminalColor();
             if (res == 'n' || res == 'N') {
                 // re-input
                 i--;
