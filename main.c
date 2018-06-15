@@ -15,24 +15,24 @@
 #define ERROR_NAN    "エラー : 数字ではありません\n"
 #define CONTINUE_MSG "続行しますか?(y/n) : "
 #define THANKS_MSG   "ご使用ありがとうございました!!\n"
-#define INTRODUCTION "一つ前の月を再入力するにはCtrl+Cを入力してください。\n"
+#define INSTRUCTION_STR "一つ前の月を再入力するにはCtrl+Cを入力してください。\n"
 #else
 #define ERROR_NAN "Error : Not a number\n"
 #define CONTINUE_MSG "Continue?(y/n) : "
 #define THANKS_MSG   "Thank you for using this software!!\n"
-#define INTRODUCTION "Ctrl+C for retyping previous value.\n"
+#define INSTRUCTION_STR "Ctrl+C for retyping previous value.\n"
 #endif
 
 void inputActivity(double* temps, double* rains);
 void judgeClimate(double* temps, double* rains, char* char3);
-char* getClimateStringBy3Char(const char* c3);
+const char* getClimateStringBy3Char(const char* c3);
 void onCtrlC(int i);
 
 #ifndef JP
 const char* months[12] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
 #endif
 
-static bool CtrlCPressed = false;
+static volatile bool ctrl_c_pressed = false;
 
 int main(void) {
     double temps[12] = {0};
@@ -47,12 +47,12 @@ int main(void) {
    
     char char3[4];
     judgeClimate(temps, rains, char3);
-    char* climateStr = getClimateStringBy3Char(char3);
+    const char* climateStr = getClimateStringBy3Char(char3);
     if (climateStr)
         printf("%s\n", climateStr);
     else
         printf("NULL\n");
-    sleep((unsigned int) 5);
+    sleep((unsigned int) 2);
     printf(THANKS_MSG);
     system("pause");
    
@@ -65,9 +65,9 @@ void inputActivity(double* temps, double* rains) {
         Handle user input and store the result to the pointed arrays
     */
     
-    // Introductions
+    // instruction
     setTerminalColor(FOREGROUND_RED|FOREGROUND_BLUE|FOREGROUND_INTENSITY);
-    printf(INTRODUCTION);
+    printf(INSTRUCTION_STR);
     resetTerminalColor();
     
     // input(both temperature and rainfall)
@@ -81,8 +81,8 @@ void inputActivity(double* temps, double* rains) {
         bool continueFlag = false;
         while (scanf("%9lf", (isRain) ? &rains[i] : &temps[i]) != 1) {
             Sleep(10);
-            if (CtrlCPressed) {
-                CtrlCPressed = false;
+            if (ctrl_c_pressed) {
+                ctrl_c_pressed = false;
                 if (i > 0) i -= 2;
 				else if (isRain) {
 					isRain = false;
@@ -235,6 +235,7 @@ void judgeClimate(double* temps, double* rains, char* char3) {
     if (dry_season == DRY_SUMMER) arid_bound = 20*temp_ave;
     else if (dry_season == DRY_NONE) arid_bound = 20*(temp_ave+7);
     else if (dry_season == DRY_WINTER) arid_bound = 20*(temp_ave+14);
+	else while(1);
     
     //// Judge B(The Dry Zone)
     if (rain_year < arid_bound) {
@@ -280,7 +281,7 @@ void judgeClimate(double* temps, double* rains, char* char3) {
 }
 
 #ifdef JP
-char* getClimateStringBy3Char(const char* c3) {
+const char* getClimateStringBy3Char(const char* c3) {
     if (c3[0] == 'A') {
         if (c3[1] == 'f') return "熱帯雨林気候";
         else if (c3[1] == 's') return "熱帯夏季少雨気候";
@@ -311,7 +312,7 @@ char* getClimateStringBy3Char(const char* c3) {
     } else return NULL;
 }
 #else
-char* getClimateStringBy3Char(const char* c3) {
+const char* getClimateStringBy3Char(const char* c3) {
     if (c3[0] == 'A') {
         if (c3[1] == 'f') return "Torrid Feucht Climate";
         else if (c3[1] == 's') return "Torrid Sommertrocken Climate";
@@ -344,6 +345,8 @@ char* getClimateStringBy3Char(const char* c3) {
 #endif
 
 void onCtrlC(int i) {
-    CtrlCPressed = true;
+	(void) i;
+	
+    ctrl_c_pressed = true;
     if (signal(SIGINT, onCtrlC) == SIG_ERR) exit(3); // set Ctrl+C signal handler
 }
